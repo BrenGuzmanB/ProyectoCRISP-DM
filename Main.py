@@ -19,7 +19,13 @@ from sklearn.manifold import MDS
 from scipy.stats import yeojohnson
 from scipy.stats import boxcox
 
-
+# FASE IV y FASE V
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from SVM import support_vector_machine
+from sklearn.linear_model import LogisticRegression
 
 #%% FASE II. COMPRENSIÓN DE LOS DATOS
 
@@ -421,3 +427,174 @@ for col in columns_to_transform:
     
 #df_encoded.to_csv("data.csv", index=False)
 
+#%% FASE IV. MODELADO DE DATOS: HOLDOUT
+
+df = pd.read_csv("data.csv") 
+
+#%%% Random Forest
+
+# Selecciona las características (X) y la variable objetivo (y)
+#X = df.drop('not.fully.paid', axis=1)
+X = df[['credit.policy', 'purpose_0', 'purpose_1', 'purpose_2', 'int.rate',
+        'fico', 'days.with.cr.line',
+       'revol.bal', 'revol.util', 'inq.last.6mths' ]]
+y = df['not.fully.paid']
+
+# Divide los datos en conjuntos de entrenamiento y prueba (80% entrenamiento, 20% prueba)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1998)
+
+# Inicializa el modelo de Random Forest
+random_forest_model = RandomForestClassifier(random_state=1998)
+
+# Entrena el modelo en el conjunto de entrenamiento
+random_forest_model.fit(X_train, y_train)
+
+# Realiza predicciones en el conjunto de prueba
+y_pred = random_forest_model.predict(X_test)
+
+# Evalúa el rendimiento del modelo
+accuracy_rfh = accuracy_score(y_test, y_pred)
+conf_matrix_rfh = confusion_matrix(y_test, y_pred)
+class_report_rfh = classification_report(y_test, y_pred)
+
+#%%% SVM Lineal
+
+svm = support_vector_machine()
+X_train = X_train.values  # Convertir DataFrame a un array de NumPy
+X_test = X_test.values  # Convertir DataFrame a un array de NumPy
+
+w,b = svm.fit(X_train,y_train)
+
+y_pred = svm.predict(X_test)
+
+# Evalúa el rendimiento del modelo
+accuracy_svmh = accuracy_score(y_test, y_pred)
+conf_matrix_svmh = confusion_matrix(y_test, y_pred)
+class_report_svmh = classification_report(y_test, y_pred)
+
+#%%% Decision Tree
+
+# Selecciona las características (X) y la variable objetivo (y)
+#X = df.drop('not.fully.paid', axis=1)
+X = df[['credit.policy', 'purpose_0', 'purpose_1', 'purpose_2', 'int.rate',
+        'fico', 'days.with.cr.line',
+       'revol.bal', 'revol.util', 'inq.last.6mths' ]]
+y = df['not.fully.paid']
+
+# Divide los datos en conjuntos de entrenamiento y prueba (80% entrenamiento, 20% prueba)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1998)
+
+# Inicializa el clasificador de árbol de decisión
+decision_tree = DecisionTreeClassifier(random_state=1998)
+
+# Entrena el árbol de decisión con los datos de entrenamiento
+decision_tree.fit(X_train, y_train)
+
+# Realiza predicciones en el conjunto de prueba
+y_pred = decision_tree.predict(X_test)
+
+# Evalúa el rendimiento del modelo
+accuracy_dth = accuracy_score(y_test, y_pred)
+conf_matrix_dth = confusion_matrix(y_test, y_pred)
+class_report_dth = classification_report(y_test, y_pred)
+
+#%%% Logistic Regression
+
+# Selecciona las características (X) y la variable objetivo (y)
+#X = df.drop('not.fully.paid', axis=1)
+X = df[['credit.policy', 'purpose_0', 'purpose_1', 'purpose_2', 'int.rate',
+        'fico', 'days.with.cr.line',
+       'revol.bal', 'revol.util', 'inq.last.6mths' ]]
+y = df['not.fully.paid']
+
+# Divide los datos en conjuntos de entrenamiento y prueba (80% entrenamiento, 20% prueba)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1998)
+
+
+# Inicializa el clasificador de regresión logística
+logistic_regression = LogisticRegression(random_state=1998)
+
+# Entrena el modelo con los datos de entrenamiento
+logistic_regression.fit(X_train, y_train)
+
+# Realiza predicciones en el conjunto de prueba
+y_pred = logistic_regression.predict(X_test)
+
+# Evalúa el rendimiento del modelo
+accuracy_lrh = accuracy_score(y_test, y_pred)
+conf_matrix_lrh = confusion_matrix(y_test, y_pred)
+class_report_lrh = classification_report(y_test, y_pred)
+#%% FASE V. EVALUACIÓN (Holdout)
+
+# Imprime las métricas de evaluación Random Forest (Holdout)
+print('_'*75)
+print("\n\n Random Forest (Holdout)\n")
+print(f'Accuracy: {accuracy_rfh:.4f}')
+print('\nConfusion Matrix:')
+print(conf_matrix_rfh)
+print('\nClassification Report:')
+print(class_report_rfh)
+
+# Imprime las métricas de evaluación SVM (Holdout)
+print('_'*75)
+print("\n\n SVM (Holdout)\n")
+print(f'Accuracy: {accuracy_svmh:.4f}')
+print('\nConfusion Matrix:')
+print(conf_matrix_svmh)
+print('\nClassification Report:')
+print(class_report_svmh)
+
+# Imprime las métricas de evaluación Decision Tree (Holdout)
+print('_'*75)
+print("\n\n Decision Tree (Holdout)\n")
+print(f'Accuracy: {accuracy_dth:.4f}')
+print('\nConfusion Matrix:')
+print(conf_matrix_dth)
+print('\nClassification Report:')
+print(class_report_dth)
+
+# Imprime las métricas de evaluación Logistic Regression (Holdout)
+print('_'*75)
+print("\n\n Logistic Regression (Holdout)\n")
+print(f'Accuracy: {accuracy_lrh:.4f}')
+print('\nConfusion Matrix:')
+print(conf_matrix_lrh)
+print('\nClassification Report:')
+print(class_report_lrh)
+
+#%% FASE V. EVALUACIÓN (Holdout)
+# Imprime las métricas de evaluación Random Forest (Holdout)
+print('_'*75)
+print("\n\n Random Forest (Holdout)\n")
+print(f'Accuracy: {accuracy_rfh:.4f}')
+print('\nConfusion Matrix:')
+print(conf_matrix_rfh)
+print('\nClassification Report:')
+print(class_report_rfh)
+
+# Imprime las métricas de evaluación SVM (Holdout)
+print('_'*75)
+print("\n\n SVM (Holdout)\n")
+print(f'Accuracy: {accuracy_svmh:.4f}')
+print('\nConfusion Matrix:')
+print(conf_matrix_svmh)
+print('\nClassification Report:')
+print(class_report_svmh)
+
+# Imprime las métricas de evaluación Decision Tree (Holdout)
+print('_'*75)
+print("\n\n Decision Tree (Holdout)\n")
+print(f'Accuracy: {accuracy_dth:.4f}')
+print('\nConfusion Matrix:')
+print(conf_matrix_dth)
+print('\nClassification Report:')
+print(class_report_dth)
+
+# Imprime las métricas de evaluación Logistic Regression (Holdout)
+print('_'*75)
+print("\n\n Logistic Regression (Holdout)\n")
+print(f'Accuracy: {accuracy_lrh:.4f}')
+print('\nConfusion Matrix:')
+print(conf_matrix_lrh)
+print('\nClassification Report:')
+print(class_report_lrh)
