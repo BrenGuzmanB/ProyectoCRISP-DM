@@ -562,39 +562,156 @@ print(conf_matrix_lrh)
 print('\nClassification Report:')
 print(class_report_lrh)
 
-#%% FASE V. EVALUACIÓN (Holdout)
-# Imprime las métricas de evaluación Random Forest (Holdout)
-print('_'*75)
-print("\n\n Random Forest (Holdout)\n")
-print(f'Accuracy: {accuracy_rfh:.4f}')
-print('\nConfusion Matrix:')
-print(conf_matrix_rfh)
-print('\nClassification Report:')
-print(class_report_rfh)
+#%% FASE IV. MODELADO DE DATOS: VALIDACIÓN ESTRATIFICADA
 
-# Imprime las métricas de evaluación SVM (Holdout)
-print('_'*75)
-print("\n\n SVM (Holdout)\n")
-print(f'Accuracy: {accuracy_svmh:.4f}')
-print('\nConfusion Matrix:')
-print(conf_matrix_svmh)
-print('\nClassification Report:')
-print(class_report_svmh)
+df = pd.read_csv("data.csv") 
 
-# Imprime las métricas de evaluación Decision Tree (Holdout)
-print('_'*75)
-print("\n\n Decision Tree (Holdout)\n")
-print(f'Accuracy: {accuracy_dth:.4f}')
-print('\nConfusion Matrix:')
-print(conf_matrix_dth)
-print('\nClassification Report:')
-print(class_report_dth)
+#%%% Random Forest
 
-# Imprime las métricas de evaluación Logistic Regression (Holdout)
+# Selecciona las características (X) y la variable objetivo (y)
+X = df.drop('not.fully.paid', axis=1)
+y = df['not.fully.paid']
+
+# Divide los datos de manera estratificada en conjuntos de entrenamiento y prueba (80% entrenamiento, 20% prueba)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1998, stratify=y)
+
+# Inicializa el modelo de Random Forest
+random_forest_model = RandomForestClassifier(random_state=1998)
+
+# Entrena el modelo en el conjunto de entrenamiento
+random_forest_model.fit(X_train, y_train)
+
+# Realiza predicciones en el conjunto de prueba
+y_pred = random_forest_model.predict(X_test)
+
+# Evalúa el rendimiento del modelo
+accuracy_rfs = accuracy_score(y_test, y_pred)
+conf_matrix_rfs = confusion_matrix(y_test, y_pred)
+class_report_rfs = classification_report(y_test, y_pred)
+
+
+#%%% SVM Lineal
+
+svm = support_vector_machine()
+X_train = X_train.values  # Convertir DataFrame a un array de NumPy
+X_test = X_test.values  # Convertir DataFrame a un array de NumPy
+
+w,b = svm.fit(X_train,y_train)
+
+y_pred = svm.predict(X_test)
+# Evalúa el rendimiento del modelo
+accuracy_svms = accuracy_score(y_test, y_pred)
+conf_matrix_svms = confusion_matrix(y_test, y_pred)
+class_report_svms = classification_report(y_test, y_pred)
+
+#%%% Decision Tree
+
+# Selecciona las características (X) y la variable objetivo (y)
+X = df.drop('not.fully.paid', axis=1)
+y = df['not.fully.paid']
+
+# Divide los datos de manera estratificada en conjuntos de entrenamiento y prueba (80% entrenamiento, 20% prueba)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=3, stratify=y)
+
+# Inicializa el clasificador de árbol de decisión
+decision_tree = DecisionTreeClassifier(random_state=1998)
+
+# Entrena el árbol de decisión con los datos de entrenamiento
+decision_tree.fit(X_train, y_train)
+
+# Realiza predicciones en el conjunto de prueba
+y_pred = decision_tree.predict(X_test)
+
+# Evalúa el rendimiento del modelo
+accuracy_dts = accuracy_score(y_test, y_pred)
+conf_matrix_dts = confusion_matrix(y_test, y_pred)
+class_report_dts = classification_report(y_test, y_pred)
+
+
+#%%% Logistic Regression
+
+# Selecciona las características (X) y la variable objetivo (y)
+X = df.drop('not.fully.paid', axis=1)
+y = df['not.fully.paid']
+
+# Divide los datos de manera estratificada en conjuntos de entrenamiento y prueba (80% entrenamiento, 20% prueba)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=3, stratify=y)
+
+# Inicializa el clasificador de regresión logística
+logistic_regression = LogisticRegression(random_state=1998)
+
+# Entrena el modelo con los datos de entrenamiento
+logistic_regression.fit(X_train, y_train)
+
+# Realiza predicciones en el conjunto de prueba
+y_pred = logistic_regression.predict(X_test)
+
+# Evalúa el rendimiento del modelo
+accuracy_lrs = accuracy_score(y_test, y_pred)
+conf_matrix_lrs = confusion_matrix(y_test, y_pred)
+class_report_lrs = classification_report(y_test, y_pred)
+
+#%% FASE V. EVALUACIÓN (validación estratificada)
+
+# Imprime las métricas de evaluación Random Forest (Stratify)
 print('_'*75)
-print("\n\n Logistic Regression (Holdout)\n")
-print(f'Accuracy: {accuracy_lrh:.4f}')
+print("\n\n Random Forest (Stratify)\n")
+print(f'Accuracy: {accuracy_rfs:.4f}')
 print('\nConfusion Matrix:')
-print(conf_matrix_lrh)
+print(conf_matrix_rfs)
 print('\nClassification Report:')
-print(class_report_lrh)
+print(class_report_rfs)
+
+# Imprime las métricas de evaluación SVM (Stratify)
+print('_'*75)
+print("\n\n SVM (Stratify)\n")
+print(f'Accuracy: {accuracy_svms:.4f}')
+print('\nConfusion Matrix:')
+print(conf_matrix_svms)
+print('\nClassification Report:')
+print(class_report_svms)
+
+# Imprime las métricas de evaluación Decision Tree (Stratify)
+print('_'*75)
+print("\n\n Decision Tree (Stratify)\n")
+print(f'Accuracy: {accuracy_dts:.4f}')
+print('\nConfusion Matrix:')
+print(conf_matrix_dts)
+print('\nClassification Report:')
+print(class_report_dts)
+
+# Imprime las métricas de evaluación Logistic Regression (Stratify)
+print('_'*75)
+print("\n\n Logistic Regression (Stratify)\n")
+print(f'Accuracy: {accuracy_lrs:.4f}')
+print('\nConfusion Matrix:')
+print(conf_matrix_lrs)
+print('\nClassification Report:')
+print(class_report_lrs)
+
+#%% COMPARACIÓN
+
+# Datos
+modelos = ['Decision Tree', 'Logistic Regression', 'Random Forest', 'Support Vector Machine']
+accuracy_holdout = [0.7448091091761554, 0.8526456798392499, 0.8519758874748827, 0.8526456798392499]
+accuracy_stratify = [0.7488278633623576, 0.855324849296718, 0.8559946416610851, 0.854655056932351]
+
+plt.figure(figsize=(10, 6))
+plt.rcParams['axes.facecolor'] = '#228B22'  
+
+# Puntos de holdout
+plt.scatter(modelos, accuracy_holdout, color='red', marker='*', label='Holdout', s=500)
+
+# Puntos de stratify 
+plt.scatter(modelos, accuracy_stratify, color='#f5da2a', marker='*', label='Stratify', s=500)
+
+# Configuraciones adicionales
+plt.title('Accuracy de Modelos de Clasificación con Holdout y Stratify')
+plt.xlabel('Modelo de Clasificación')
+plt.ylabel('Accuracy')
+plt.ylim(0.73, 0.87)
+plt.legend(fontsize=14) 
+plt.grid(True, linestyle='--', alpha=0.7)
+
+plt.show()
+
