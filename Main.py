@@ -15,6 +15,10 @@ from sklearn.preprocessing import StandardScaler
 import category_encoders as ce
 from sklearn.manifold import MDS
 
+# FASE III
+from scipy.stats import yeojohnson
+from scipy.stats import boxcox
+
 
 
 #%% FASE II. COMPRENSIÓN DE LOS DATOS
@@ -326,4 +330,94 @@ plt.legend(handles=handles, title='Variable Objetivo', loc='upper right')
 
 plt.show()
 
+
+#%% FASE III. TRANSFORMACIÓN DE LOS DATOS
+
+#%%% Codificación de purpose (Binary Encoder)
+
+# Inicializar el codificador BinaryEncoder
+encoder = ce.BinaryEncoder(cols=['purpose'])
+
+# Aplicar la codificación al DataFrame
+df_encoded = encoder.fit_transform(df)
+
+# Ver el DataFrame resultante
+print(df_encoded.head())
+
+#%%% Manejo de valores atípicos
+
+columns_of_interest = ['installment', 'log.annual.inc', 'fico', 'days.with.cr.line', 'revol.bal', 'inq.last.6mths']
+
+# Calcula el Z-Score para cada columna de interés
+for column in columns_of_interest:
+    z_score_column = column + '_Z_Score'
+    df_encoded[z_score_column] = (df_encoded[column] - df_encoded[column].mean()) / df_encoded[column].std()
+
+# Define el umbral para identificar valores atípicos
+umbral = 2
+
+# Identifica registros con valores atípicos en al menos una de las columnas
+outliers_df = df_encoded[(df_encoded.filter(regex='_Z_Score').abs() > umbral).any(axis=1)]
+
+# Muestra el DataFrame con valores atípicos
+print(outliers_df)
+
+# Elimina los registros en df_encoded que están en outliers_df
+indices_to_drop = outliers_df.index
+df_encoded = df_encoded.drop(indices_to_drop)
+
+
+# Lista de las columnas a eliminar
+columns_to_drop = [column + '_Z_Score' for column in columns_of_interest]
+
+# Eliminar las columnas
+df_encoded = df_encoded.drop(columns=columns_to_drop)
+
+#df_encoded = df_encoded.drop(['color'], axis=1)
+
+#%%% Normalización de los datos.
+
+# Selecciona todas las columnas numéricas para aplicar la normalización
+#numeric_columns = df_encoded.select_dtypes(include=['float64', 'int64']).columns
+numeric_columns = [ 'int.rate', 'installment', 'log.annual.inc', 'dti',
+                   'fico', 'days.with.cr.line', 'revol.bal', 'revol.util']
+
+# Inicializa el objeto StandardScaler
+scaler = StandardScaler()
+
+# Aplica la normalización Z-Score a todas las columnas seleccionadas
+df_encoded[numeric_columns] = scaler.fit_transform(df_encoded[numeric_columns])
+
+# Muestra el DataFrame resultante con las columnas normalizadas
+print(df_encoded)
+
+#df_encoded.to_csv("data.csv", index=False)
+
+#%%% Transformaciones para aproximar a distribución normal (Yeo-Johnson, Box-Cox)
+
+#df_encoded = pd.read_csv("data.csv")
+
+columns_to_transform = ['days.with.cr.line', 'revol.bal']
+
+for col in columns_to_transform:
+    plt.figure(figsize=(8, 6))
+    plt.hist(df_encoded[col], bins=10)  
+    plt.title(f'Histograma de {col} (antes)')
+    plt.xlabel(col)
+    plt.ylabel('Frecuencia')
+    plt.show()
+ 
+
+df_encoded['days.with.cr.line'], _ = yeojohnson(df_encoded['days.with.cr.line'] + 1)  # Agregamos 1 para manejar valores no positivos
+df_encoded['revol.bal'], _ = boxcox(df_encoded['revol.bal'] + 1)  # Agregamos 1 para manejar valores no positivos
+
+for col in columns_to_transform:
+    plt.figure(figsize=(8, 6))
+    plt.hist(df_encoded[col], bins=10)  
+    plt.title(f'Histograma de {col} (después)')
+    plt.xlabel(col)
+    plt.ylabel('Frecuencia')
+    plt.show()
+    
+#df_encoded.to_csv("data.csv", index=False)
 
